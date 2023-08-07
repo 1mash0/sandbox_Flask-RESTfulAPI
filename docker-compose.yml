@@ -1,0 +1,36 @@
+version: '3'
+services:
+  # MySQL
+  db:
+    build: ./db/
+    container_name: sandbox_flask-db
+    environment:
+      MYSQL_ROOT_PASSWORD: mysql
+      TZ: 'Asia/Tokyo'
+    volumes:
+      - ./db/data:/var/lib/mysql
+      - ./log/mysql:/var/log/mysql
+      - ./db/sqls:/docker-entrypoint-initdb.d
+
+  python:
+    restart: always
+    build:
+      context: ./python
+    container_name: sandbox_flask
+    working_dir: "/root/src"
+    tty: true
+    volumes:
+      - ./python/src:/root/src
+    environment:
+      FLASK_APP: run.py
+      FLASK_ENV: development
+    command: flask run -h 0.0.0.0
+
+networks:
+  sandbox_flask-networks:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.2.0/24
+          gateway: 192.168.2.1
